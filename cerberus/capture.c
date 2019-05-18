@@ -1,12 +1,12 @@
 #include "cerberus.h"
 
-int						contact_host(int client_fd, char *hostname, char *path)
+int						contacting_host(int client_fd, char *hostname, char *path)
 {
-	int					server_fd_2;
-	char				*ip;
-	int					n;
 	char				buffer[1000];
 	int					host_fd;
+	char				*ip;
+	int					n;
+	int					server_fd_2;
 
 	ip = get_ip_from_hostname(hostname);
 	server_fd_2 = -1;
@@ -30,7 +30,7 @@ int						parse_url(char *tmp, char **hostname, char **path)
 	bzero(tmp_path, 1000);
 	tmp2 = strtok(tmp, "/");
 	if (!tmp2 || strncmp(tmp2, "http:", 5))
-		print_error("Sorry, address must be prefixed with 'http'");
+		print_error("Please prefix URL with 'http'");
 	tmp2 = strtok(NULL, "/");
 	*hostname = strdup(tmp2);
 	strcpy(tmp_path, "/");
@@ -62,17 +62,17 @@ int						parse_input(int client_fd)
 	path = NULL;
 	if ((input = get_input(client_fd)))
 	{
-		if (!is_http_1(input))
-			print_error("Please specify HTTP/1.0. Exiting");
+		if (!is_http(input))
+			print_error("Specify HTTP/1.0. Connecting failed.\n");
 		tmp = strtok(input, " ");
 		strcpy(request, tmp);
 		tmp = strtok(NULL, " ");
 		if (!parse_url(tmp, &hostname, &path))
-			print_error("Couldn't parse URL. Exiting.\n");
-		contact_host(client_fd, hostname, path);
+			print_error("Problem with URL. Connecting failed.\n");
+		contacting_host(client_fd, hostname, path);
 	}
 	else
-		print_error("Sorry, problem getting input. Exiting");
+		print_error("Failed to get input. Now Exiting.\n");
 	return (1);
 }
 
@@ -95,18 +95,18 @@ int						main(int ac, char **av)
 	int					client_fd;
 
 	if (ac != 2 || atoi(av[1]) < 0 || atoi(av[1]) > 65535)
-		print_error("Please enter a valid port number.\n");
+		print_error("Enter valid port numbers only.\n");
 	bzero((char*)&c_addr, sizeof(c_addr));
 	s_addr = get_server_socket_fd(atoi(av[1]));
 	if ((server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) \
 		&& server_socket < 0)
-		print_error("Could not initialize socket.\n");
+		print_error("Error - socket not initialized.\n");
 	if (bind(server_socket, (struct sockaddr *)&s_addr, sizeof(s_addr)) < 0)
-		print_error("Error assigning local end's port number");
+		print_error("Failed to assign local end's port number");
 	listen(server_socket, 10);
 	if ((client_fd = accept(server_socket, (struct sockaddr *)NULL, NULL)) \
 		&& client_fd < 0)
-		print_error("Error accepting connection.\n");
+		print_error("Error connecting.\n");
 	parse_input(client_fd);
 	close(client_fd);
 	close(server_socket);

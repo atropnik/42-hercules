@@ -1,6 +1,6 @@
 #include "cerberus.h"
 
-int					is_http_1(char *arg)
+int					is_http(char *arg)
 {
 	char	*tmp;
 	int		len;
